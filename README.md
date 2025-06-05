@@ -19,3 +19,10 @@ A mini project that detects your current location using your IP address and disp
 
 ## 📂 Project Structure
 
+
+## ⚙️ How to Run
+
+### 1. 📦 Install Dependencies
+
+```bash
+pip install requests folium selenium webdriver-manager
