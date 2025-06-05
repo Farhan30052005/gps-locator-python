@@ -7,6 +7,7 @@ import folium
 import datetime
 import time
 import os
+from pathlib import Path
 
 # This method will return your actual coordinates using your IP address
 def locationCoordinates():
@@ -18,47 +19,48 @@ def locationCoordinates():
         city = data.get('city', 'Unknown')
         state = data.get('region', 'Unknown')
         return lat, long, city, state
-    except:
-        print("Internet Not Available")
+    except requests.RequestException as e:
+        print("Error fetching location:", e)
         exit()
 
 # This method fetches coordinates and creates an HTML map file
 def gps_locator():
-    # Create initial map with zoomed out view
     obj = folium.Map(location=[0, 0], zoom_start=2)
 
     try:
         lat, long, city, state = locationCoordinates()
-        print(f"You are in {city}, {state}")
-        print(f"Your latitude = {lat} and longitude = {long}")
+        print(f"\n📍 You are in {city}, {state}")
+        print(f"🌐 Latitude = {lat}, Longitude = {long}")
+
         folium.Marker([lat, long], popup='Current Location').add_to(obj)
 
-        # Make sure the directory exists
+        # Ensure output directory exists
         output_dir = "C:/screengfg"
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
-        fileName = os.path.join(output_dir, f"Location{datetime.date.today()}.html")
-        obj.save(fileName)
-        return fileName
+        file_name = os.path.join(output_dir, f"Location_{datetime.date.today()}.html")
+        obj.save(file_name)
+        return file_name
 
     except Exception as e:
-        print("Error:", e)
+        print("Error generating map:", e)
         return False
 
-# Main method
+# Main function
 if __name__ == "__main__":
     print("--------------- GPS Using Python ---------------\n")
 
-    # Function Calling
     page = gps_locator()
     if page:
-        print("\nOpening File.............")
-        # Open the generated HTML map in Chrome using Selenium
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-        driver.get("file:///" + page)
-        time.sleep(4)
-        driver.quit()
-        print("\nBrowser Closed..............")
+        print("\n✅ Map generated. Opening in browser...")
+
+        try:
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+            driver.get(Path(page).as_uri())
+            time.sleep(4)  # Wait for 4 seconds to view
+            driver.quit()
+            print("\n🗺️  Map Closed. Program finished.")
+        except Exception as e:
+            print("🚫 Failed to open browser:", e)
     else:
-        print("Unable to generate location map.") 
+        print("❌ Unable to generate location map.")
